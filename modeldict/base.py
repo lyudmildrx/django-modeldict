@@ -179,12 +179,11 @@ class CachedDict(object):
             # local_cache
             if local_cache_is_invalid or local_cache_is_invalid is None:
                 self._local_cache = self.remote_cache.get(self.remote_cache_key)
+                if self._local_cache:
+                    # We've updated from remote, so mark ourselves as such
+                    self._local_last_updated = now
 
-            # No matter what, we've updated from remote, so mark ourselves as
-            # such so that we won't expire until the next timeout
-            self._local_last_updated = now
-
-        # Update from cache if local_cache is still empty
+        # Update from source if local_cache is still empty
         if self._local_cache is None:
             self._update_cache_data()
 
