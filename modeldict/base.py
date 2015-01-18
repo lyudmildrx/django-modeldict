@@ -183,12 +183,12 @@ class CachedDict(object):
                     # We've updated from remote, so mark ourselves as such
                     self._local_last_updated = now
 
+            # We just checked for remote changes
+            self._last_checked_for_remote_changes = now
+
         # Update from source if local_cache is still empty
         if self._local_cache is None:
             self._update_cache_data()
-
-        # No matter what happened, we last checked for remote changes just now
-        self._last_checked_for_remote_changes = now
 
         return self._local_cache
 
