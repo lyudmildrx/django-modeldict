@@ -345,18 +345,24 @@ class CachedDictTest(TestCase):
         """
         We want local cache last updated value to be updated if and only if
         a cache update actually took place.
+        The same is valid for the _last_checked_for_remote_changes value.
         """
         self.mydict._local_cache = {}
         local_last_updated_unit_value = self.mydict._local_last_updated
 
         for case in [(False, False), (False, True), (True, False)]:
             expired_mock.return_value, invalid_mock.return_value = case
+            current_last_remote_check_value = self.mydict._last_checked_for_remote_changes = None
             self.mydict._populate()
-            self.assertEquals(self.mydict._local_last_updated,
-                              local_last_updated_unit_value)
+            self.assertEquals(self.mydict._local_last_updated, local_last_updated_unit_value)
+            # If cache had expired we should have checked for remote changes
+            if expired_mock.return_value:
+                self.assertNotEquals(self.mydict._last_checked_for_remote_changes, current_last_remote_check_value)
+            else:
+                self.assertEquals(self.mydict._last_checked_for_remote_changes, current_last_remote_check_value)
 
         expired_mock.return_value = True
         invalid_mock.return_value = True
         self.mydict._populate()
-        self.assertNotEquals(self.mydict._local_last_updated,
-                             local_last_updated_unit_value)
+        self.assertNotEquals(self.mydict._local_last_updated, local_last_updated_unit_value)
+        self.assertNotEquals(self.mydict._last_checked_for_remote_changes, current_last_remote_check_value)
