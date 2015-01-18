@@ -338,3 +338,25 @@ class CachedDictTest(TestCase):
             self.mydict.remote_cache_last_updated_key
         )
         self.assertEquals(result, True)
+
+    @mock.patch('modeldict.base.CachedDict.local_cache_has_expired')
+    @mock.patch('modeldict.base.CachedDict.local_cache_is_invalid')
+    def test_local_last_updated_value(self, invalid_mock, expired_mock):
+        """
+        We want local cache last updated value to be updated if and only if
+        a cache update actually took place.
+        """
+        self.mydict._local_cache = {}
+        local_last_updated_unit_value = self.mydict._local_last_updated
+
+        for case in [(False, False), (False, True), (True, False)]:
+            expired_mock.return_value, invalid_mock.return_value = case
+            self.mydict._populate()
+            self.assertEquals(self.mydict._local_last_updated,
+                              local_last_updated_unit_value)
+
+        expired_mock.return_value = True
+        invalid_mock.return_value = True
+        self.mydict._populate()
+        self.assertNotEquals(self.mydict._local_last_updated,
+                             local_last_updated_unit_value)
